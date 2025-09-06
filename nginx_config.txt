@@ -1,0 +1,58 @@
+# ============================================
+# CONFIGURACIÓN NGINX PARA PLESK
+# Copiar esto en: Plesk > fleet.loginexia.com > Apache & nginx Settings
+# ============================================
+
+# Proxy para la aplicación Flask
+location / {
+    proxy_pass http://127.0.0.1:5000;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_cache_bypass $http_upgrade;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    
+    # Timeouts largos para operaciones IA
+    proxy_connect_timeout 300;
+    proxy_send_timeout 300;
+    proxy_read_timeout 300;
+    send_timeout 300;
+    
+    # Buffer size para uploads
+    client_max_body_size 16M;
+    client_body_buffer_size 128k;
+    
+    # Buffering
+    proxy_buffering off;
+    proxy_request_buffering off;
+}
+
+# Health check endpoint (sin logs)
+location /health {
+    proxy_pass http://127.0.0.1:5000/health;
+    access_log off;
+}
+
+# Static files
+location /static {
+    alias /var/www/vhosts/loginexia.com/fleet.loginexia.com/static;
+    expires 30d;
+    add_header Cache-Control "public, immutable";
+}
+
+# WebSocket support (si lo necesitas)
+location /socket.io {
+    proxy_pass http://127.0.0.1:5000/socket.io;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+}
+
+# Security headers
+add_header X-Frame-Options "SAMEORIGIN" always;
+add_header X-XSS-Protection "1; mode=block" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header Referrer-Policy "no-referrer-when-downgrade" always;
