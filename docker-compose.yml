@@ -45,3 +45,4 @@ networks:
 volumes:
   redis_data:
     driver: local
+
