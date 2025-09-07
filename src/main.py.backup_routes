@@ -229,35 +229,3 @@ app = create_app()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
-
-# Fix para servir assets de React
-try:
-    from src.fix_assets import setup_asset_routes
-    app = setup_asset_routes(app)
-    print('✅ Asset routes configuradas')
-except Exception as e:
-    print(f'⚠️ Error configurando assets: {e}')
-
-# Override root route to serve React instead of API info
-try:
-    from src.fix_root_route import override_root_route
-    app = override_root_route(app)
-    print("✅ Root route configured to serve React")
-except Exception as e:
-    print(f"⚠️ Could not override root route: {e}")
-
-# Register demo auth blueprint
-try:
-    from src.demo_auth import demo_auth_bp
-    app.register_blueprint(demo_auth_bp)
-    print("✅ Demo auth routes registered")
-except Exception as e:
-    print(f"⚠️ Could not register demo auth: {e}")
-
-# Configurar React Router para SPA
-try:
-    from src.react_router import setup_react_router
-    app = setup_react_router(app)
-    print("✅ React Router (SPA) configured")
-except Exception as e:
-    print(f"⚠️ Could not configure React Router: {e}")

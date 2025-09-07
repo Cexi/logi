@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Loginexia Fleet</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 90%;
+            max-width: 400px;
+        }
+        .logo {
+            text-align: center;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 2rem;
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            width: 100%;
+            padding: 0.875rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .alert {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .alert.success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+        .alert.error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+        .demo-info {
+            background: #f7fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .demo-info h3 {
+            color: #2d3748;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+        .demo-info code {
+            display: block;
+            color: #4a5568;
+            font-size: 0.85rem;
+            margin: 0.25rem 0;
+            font-family: monospace;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 1rem 0;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">🚚</div>
+        <h1>Loginexia Fleet</h1>
+        
+        <div id="alertBox" class="alert"></div>
+        
+        <div class="demo-info">
+            <h3>🔐 Credenciales Demo</h3>
+            <code>Email: demo@loginexia.com</code>
+            <code>Password: demo123</code>
+        </div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    value="demo@loginexia.com"
+                    required
+                >
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    value="demo123"
+                    required
+                >
+            </div>
+            
+            <button type="submit" id="loginBtn">Iniciar Sesión</button>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 0.5rem; color: #718096;">Iniciando sesión...</p>
+            </div>
+        </form>
+    </div>
+    
+    <script>
+        // Try multiple API endpoints
+        const API_ENDPOINTS = [
+            '/api/demo/auth/demo-login',
+            '/api/auth/login',
+            '/api/login'
+        ];
+        
+        async function tryLogin(email, password) {
+            for (const endpoint of API_ENDPOINTS) {
+                try {
+                    console.log(`Trying endpoint: ${endpoint}`);
+                    const response = await fetch(endpoint, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ email, password })
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.access_token || data.token) {
+                            return { success: true, data, endpoint };
+                        }
+                    }
+                } catch (error) {
+                    console.log(`Failed ${endpoint}:`, error);
+                }
+            }
+            return { success: false };
+        }
+        
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const loginBtn = document.getElementById('loginBtn');
+            const loading = document.getElementById('loading');
+            const alertBox = document.getElementById('alertBox');
+            
+            // Reset alert
+            alertBox.style.display = 'none';
+            alertBox.className = 'alert';
+            
+            // Show loading
+            loginBtn.disabled = true;
+            loading.style.display = 'block';
+            
+            // Try API login
+            const result = await tryLogin(email, password);
+            
+            if (result.success) {
+                // API login successful
+                alertBox.className = 'alert success';
+                alertBox.innerHTML = '✅ ¡Login exitoso! Redirigiendo...';
+                alertBox.style.display = 'block';
+                
+                // Save token
+                const token = result.data.access_token || result.data.token;
+                localStorage.setItem('access_token', token);
+                localStorage.setItem('user_email', email);
+                
+                // Redirect
+                setTimeout(() => {
+                    window.location.href = '/static/dashboard.html';
+                }, 1000);
+                
+            } else if (email === 'demo@loginexia.com' && password === 'demo123') {
+                // Fallback to demo mode
+                alertBox.className = 'alert success';
+                alertBox.innerHTML = '✅ ¡Bienvenido! (Modo Demo Offline)';
+                alertBox.style.display = 'block';
+                
+                // Save demo data
+                localStorage.setItem('demo_mode', 'true');
+                localStorage.setItem('user_email', email);
+                localStorage.setItem('access_token', 'demo-token-' + Date.now());
+                
+                // Redirect
+                setTimeout(() => {
+                    window.location.href = '/static/dashboard.html';
+                }, 1000);
+                
+            } else {
+                // Login failed
+                alertBox.className = 'alert error';
+                alertBox.innerHTML = '❌ Credenciales incorrectas';
+                alertBox.style.display = 'block';
+            }
+            
+            // Hide loading
+            loading.style.display = 'none';
+            loginBtn.disabled = false;
+        });
+    </script>
+</body>
+</html>

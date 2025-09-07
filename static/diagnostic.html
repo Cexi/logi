@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnóstico React - Loginexia</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+        .test-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 3px;
+        }
+        .success {
+            color: green;
+            font-weight: bold;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .warning {
+            color: orange;
+            font-weight: bold;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #5a5fcf;
+        }
+        pre {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Diagnóstico React App - Loginexia</h1>
+        
+        <div class="test-section">
+            <h2>1. Verificación de Assets</h2>
+            <div id="assets-test"></div>
+            <button onclick="testAssets()">Probar Assets</button>
+        </div>
+        
+        <div class="test-section">
+            <h2>2. Verificación de React</h2>
+            <div id="react-test"></div>
+            <button onclick="testReact()">Probar React</button>
+        </div>
+        
+        <div class="test-section">
+            <h2>3. Verificación de API</h2>
+            <div id="api-test"></div>
+            <button onclick="testAPI()">Probar API</button>
+        </div>
+        
+        <div class="test-section">
+            <h2>4. Consola de Errores</h2>
+            <div id="console-errors">
+                <pre id="error-log">Sin errores detectados...</pre>
+            </div>
+            <button onclick="checkConsole()">Actualizar Consola</button>
+        </div>
+        
+        <div class="test-section">
+            <h2>5. Soluciones Rápidas</h2>
+            <button onclick="window.location.href='/static/login.html'">Ir a Login HTML</button>
+            <button onclick="window.location.href='/static/dashboard.html'">Ir a Dashboard HTML</button>
+            <button onclick="window.location.href='/app'">Probar /app</button>
+            <button onclick="window.location.href='/static/index.html'">Probar /static/index.html</button>
+        </div>
+    </div>
+    
+    <script>
+        // Capture console errors
+        window.errors = [];
+        window.onerror = function(msg, url, line, col, error) {
+            window.errors.push({
+                message: msg,
+                source: url,
+                line: line,
+                column: col,
+                error: error
+            });
+            updateErrorLog();
+            return false;
+        };
+        
+        function updateErrorLog() {
+            const log = document.getElementById('error-log');
+            if (window.errors.length > 0) {
+                log.textContent = window.errors.map(e => 
+                    `Error: ${e.message}\nSource: ${e.source}\nLine: ${e.line}`
+                ).join('\n\n');
+            }
+        }
+        
+        async function testAssets() {
+            const div = document.getElementById('assets-test');
+            div.innerHTML = '<p class="loading">Probando assets...</p>';
+            
+            const assets = [
+                '/assets/index-DXPCKFP6.js',
+                '/assets/index-C8OnwuCY.css',
+                '/static/assets/index-DXPCKFP6.js',
+                '/static/assets/index-C8OnwuCY.css'
+            ];
+            
+            let html = '';
+            for (const asset of assets) {
+                try {
+                    const response = await fetch(asset, { method: 'HEAD' });
+                    if (response.ok) {
+                        html += `<div class="test-item"><span class="success">✅</span> ${asset} - OK</div>`;
+                    } else {
+                        html += `<div class="test-item"><span class="error">❌</span> ${asset} - ${response.status}</div>`;
+                    }
+                } catch (error) {
+                    html += `<div class="test-item"><span class="error">❌</span> ${asset} - Error: ${error.message}</div>`;
+                }
+            }
+            
+            div.innerHTML = html;
+        }
+        
+        async function testReact() {
+            const div = document.getElementById('react-test');
+            div.innerHTML = '<p class="loading">Verificando React...</p>';
+            
+            let html = '';
+            
+            // Check if React is loaded
+            if (typeof React !== 'undefined') {
+                html += '<div class="test-item"><span class="success">✅</span> React está cargado</div>';
+            } else {
+                html += '<div class="test-item"><span class="error">❌</span> React NO está cargado</div>';
+            }
+            
+            // Check for root element
+            const root = document.getElementById('root');
+            if (root) {
+                html += '<div class="test-item"><span class="success">✅</span> Elemento root existe</div>';
+                if (root.children.length > 0) {
+                    html += '<div class="test-item"><span class="success">✅</span> React ha renderizado contenido</div>';
+                } else {
+                    html += '<div class="test-item"><span class="warning">⚠️</span> Root está vacío - React no renderizó</div>';
+                }
+            } else {
+                html += '<div class="test-item"><span class="warning">⚠️</span> No hay elemento root</div>';
+            }
+            
+            // Try to load React app
+            html += '<div class="test-item">Intentando cargar React manualmente...</div>';
+            
+            try {
+                // Create root element if not exists
+                if (!document.getElementById('root')) {
+                    const newRoot = document.createElement('div');
+                    newRoot.id = 'root';
+                    document.body.appendChild(newRoot);
+                }
+                
+                // Try to load the JS
+                const script = document.createElement('script');
+                script.type = 'module';
+                script.src = '/static/assets/index-DXPCKFP6.js';
+                document.head.appendChild(script);
+                
+                html += '<div class="test-item"><span class="success">✅</span> Script React añadido</div>';
+            } catch (error) {
+                html += `<div class="test-item"><span class="error">❌</span> Error: ${error.message}</div>`;
+            }
+            
+            div.innerHTML = html;
+        }
+        
+        async function testAPI() {
+            const div = document.getElementById('api-test');
+            div.innerHTML = '<p class="loading">Probando endpoints API...</p>';
+            
+            const endpoints = [
+                '/health',
+                '/api',
+                '/api/docs',
+                '/api/auth/login',
+                '/api/demo/auth/demo-login'
+            ];
+            
+            let html = '';
+            for (const endpoint of endpoints) {
+                try {
+                    const response = await fetch(endpoint);
+                    if (response.ok) {
+                        html += `<div class="test-item"><span class="success">✅</span> ${endpoint} - ${response.status} OK</div>`;
+                    } else {
+                        html += `<div class="test-item"><span class="warning">⚠️</span> ${endpoint} - ${response.status}</div>`;
+                    }
+                } catch (error) {
+                    html += `<div class="test-item"><span class="error">❌</span> ${endpoint} - Error</div>`;
+                }
+            }
+            
+            div.innerHTML = html;
+        }
+        
+        function checkConsole() {
+            updateErrorLog();
+            
+            // Also check for React specific issues
+            const div = document.getElementById('console-errors');
+            let additionalInfo = '<h3>Info Adicional:</h3><ul>';
+            
+            // Check localStorage
+            additionalInfo += '<li>LocalStorage items: ' + Object.keys(localStorage).length + '</li>';
+            
+            // Check cookies
+            additionalInfo += '<li>Cookies: ' + (document.cookie || 'None') + '</li>';
+            
+            // Check current URL
+            additionalInfo += '<li>Current URL: ' + window.location.href + '</li>';
+            
+            additionalInfo += '</ul>';
+            
+            div.innerHTML += additionalInfo;
+        }
+        
+        // Auto-run tests on load
+        window.onload = function() {
+            setTimeout(() => {
+                testAssets();
+                testAPI();
+            }, 1000);
+        };
+    </script>
+</body>
+</html>
